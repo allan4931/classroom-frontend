@@ -1,196 +1,272 @@
-<div align="center">
-  <br />
-    <a href="https://youtu.be/ek7hmv5PVV8" target="_blank">
-      <img src="public/readme/readme-hero.webp" alt="Project Banner">
-    </a>
-  <br />
+# NetClass — Frontend
 
-  <div>
-<img src="https://img.shields.io/badge/-React-61DAFB?style=for-the-badge&logo=React&logoColor=black" />
-<img src="https://img.shields.io/badge/-Refine-42D7C3?style=for-the-badge&logo=Refine&logoColor=white" />
-<img src="https://img.shields.io/badge/-Tailwind-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" />
-<img src="https://img.shields.io/badge/-Typescript-3178C6?style=for-the-badge&logo=Typescript&logoColor=white" /> <br/>
-<img src="https://img.shields.io/badge/-Postgresql-4169E1?style=for-the-badge&logo=PostgreSQL&logoColor=white" /> 
-<img src="https://img.shields.io/badge/-NeonDB-00E599?style=for-the-badge&logo=Neon&logoColor=black" /> 
-<img src="https://img.shields.io/badge/-Drizzle-C5F74F?style=for-the-badge&logo=Drizzle&logoColor=black" /> 
-<img src="https://img.shields.io/badge/-Better--Auth-000?style=for-the-badge&logo=Auth0&logoColor=white" /> <br/>
-<img src="https://img.shields.io/badge/-Cloudinary-3448C5?style=for-the-badge&logo=Cloudinary&logoColor=white" />
-<img src="https://img.shields.io/badge/-Arcjet-34388F?style=for-the-badge&logo=Arcjet&logoColor=white" /> 
-<img src="https://img.shields.io/badge/-Site24x7-26CD66?style=for-the-badge&logo=Site24x7&logoColor=white" />
-<img src="https://img.shields.io/badge/-CodeRabbit-FC5D13?style=for-the-badge&logo=CodeRabbit&logoColor=white" /> 
+The UI for the NetClass classroom management system. Built with **React 19 + Vite**, using **Refine** for data management, **shadcn/ui** for components, and **Tailwind CSS v4** for styling. Features role-based views for admins, teachers, and students.
 
-  </div>
+---
 
-  <h3 align="center">(Frontend) University Dashboard Management</h3>
+## Tech Stack
 
-   <div align="center">
-     Build this project step by step with our detailed tutorial on <a href="https://www.youtube.com/watch?v=XUkNR-JfHwo" target="_blank"><b>JavaScript Mastery</b></a> YouTube. Join the JSM family!
-    </div>
-</div>
+| Layer | Technology |
+|---|---|
+| Framework | React 19 |
+| Build tool | Vite 6 |
+| Language | TypeScript 5 |
+| Data / State | Refine v5 |
+| UI Components | shadcn/ui (Radix UI primitives) |
+| Styling | Tailwind CSS v4 |
+| Forms | React Hook Form + Zod |
+| Tables | TanStack Table v8 |
+| Icons | Lucide React |
+| Routing | React Router v7 |
 
-## 📋 <a name="table">Table of Contents</a>
+---
 
-1. ✨ [Introduction](#introduction)
-2. ⚙️ [Tech Stack](#tech-stack)
-3. 🔋 [Features](#features)
-4. 🤸 [Quick Start](#quick-start)
-5. 🔗 [Assets](#links)
-6. 🚀 [More](#more)
+## Project Structure
 
-## 🚨 Tutorial
-
-This repository contains the code corresponding to an in-depth tutorial available on our YouTube channel, <a href="https://www.youtube.com/@javascriptmastery/videos" target="_blank"><b>JavaScript Mastery</b></a>.
-
-If you prefer visual learning, this is the perfect resource for you. Follow our tutorial to learn how to build projects like these step-by-step in a beginner-friendly manner!
-
-<a href="https://youtu.be/ek7hmv5PVV8" target="_blank"><img src="https://github.com/sujatagunale/EasyRead/assets/151519281/1736fca5-a031-4854-8c09-bc110e3bc16d" /></a>
-
-## <a name="introduction">✨ Introduction</a>
-
-A high-performance PERN stack (PostgreSQL, Express, React, Node.js) academic hub. This multi-role system (Admin, Teacher, Student) utilizes a decoupled architecture where an Express/Node.js backend serves a modular React frontend powered by Refine. By leveraging PostgreSQL (Neon) with Drizzle ORM, it ensures type-safe data integrity for class management, automated scheduling, and real-time analytics. Secure access is managed via Better-Auth, providing a robust, controlled-access environment for campus operations.
-
-If you're getting started and need assistance or face any bugs, join our active Discord community with over **50k+** members. It's a place where people help each other out.
-
-<a href="https://discord.com/invite/n6EdbFJ" target="_blank"><img src="https://github.com/sujatagunale/EasyRead/assets/151519281/618f4872-1e10-42da-8213-1d69e486d02e" /></a>
-
-## <a name="tech-stack">⚙️ Tech Stack</a>
-
-### Frontend Stack
-
-- **[React](https://react.dev/)** is a declarative, component-based JavaScript library for building user interfaces. It allows for the creation of complex, interactive UIs through reusable components, providing the core frontend experience for the academic hub.
-
-- **[Refine](https://jsm.dev/pern-refine)** is a React-based framework for building data-intensive applications like admin panels and dashboards. It provides a headless approach that handles core logic—such as authentication, routing, and data fetching—allowing developers to focus on the UI and business logic.
-
-- **[shadcn/ui](https://ui.shadcn.com/)** is a collection of re-usable components built using Radix UI and Tailwind CSS. It allows developers to build high-quality, accessible design systems by providing beautifully designed components that can be copied and pasted directly into applications.
-
-- **[Tailwind CSS](https://tailwindcss.com/)** is a utility-first CSS framework for rapidly building custom user interfaces. It provides low-level utility classes that let you build completely custom designs without ever leaving your HTML, ensuring highly maintainable and responsive styling.
-
-- **[TypeScript](https://www.typescriptlang.org/)** is a superset of JavaScript that adds static typing, providing better tooling, code quality, and error detection for developers. It is ideal for building large-scale applications and enhances the development experience.
-
-- **[Zod](https://zod.dev/)** is a TypeScript-first schema declaration and validation library. It is used to define data structures and validate them at runtime, ensuring type safety and reducing bugs by providing a single source of truth for both static types and data validation.
-
-
-### Backend Stack
-
-- **[Arcjet](https://jsm.dev/pern-arcjet)** is a security-first tool that helps developers protect their applications with just a few lines of code. It provides security primitives for rate limiting, bot protection, email validation, and sensitive data masking, ensuring the application remains secure and resilient.
-
-- **[Better Auth](https://www.better-auth.com/)** is a framework-agnostic authentication and authorization library for TypeScript. It provides built-in support for email and password authentication, social sign-on (Google, GitHub, Apple, and more), and multi-factor authentication, simplifying user authentication and account management.
-
-- **[Cloudinary](https://jsm.dev/pern-cloudinary)** is an end-to-end image and video management solution. It automates the upload, storage, manipulation, and delivery of media assets, ensuring optimized performance and a seamless visual experience across any device.
-
-- **[Drizzle ORM](https://orm.drizzle.team/docs/overview)** is a lightweight and performant TypeScript ORM designed with developer experience in mind. It provides a seamless interface between application code and database operations while maintaining high performance and reliability.
-
-- **[Express.js](https://expressjs.com/)** is a minimal and flexible Node.js web application framework that provides a robust set of features for web and mobile applications. It facilitates the rapid development of RESTful APIs and serves as the standard server framework for the Node.js ecosystem.
-
-- **[Neon](https://neon.com/)** is a fully managed, serverless PostgreSQL database platform. It offers features like instant provisioning, autoscaling, and database branching, enabling developers to build scalable applications without managing infrastructure.
-
-- **[Node.js](https://nodejs.org/)** is an open-source, cross-platform JavaScript runtime environment that executes JavaScript code outside a web browser. It is designed to build scalable network applications and serves as the foundation for the project's backend logic.
-
-### Dev Tools
-- **[CodeRabbit](https://jsm.dev/pern-coderabbit)** is an AI-powered code review platform that provides automated, contextual feedback on pull requests. It helps developers improve code quality and catch potential bugs early by integrating directly into the development workflow.
-
-- **[Site24x7](https://jsm.dev/pern-site24x7)** is a comprehensive monitoring solution that provides deep insights into application performance and infrastructure health. It allows for real-time tracking of uptime, end-user experience, and server metrics to ensure maximum availability.
-
-
-## <a name="features">🔋 Features</a>
-
-👉 **Multi-Role Authentication**: A secure entry system powered by **Better Auth** and **Arcjet** that dynamically routes Students, Teachers, and Admins to protected dashboards with strict role-based permissions.
-
-👉 **Unified Analytics Dashboard**: A high-level overview of the institution's health, featuring real-time statistics on student enrollment, active classes, and faculty distribution via **Refine's** data providers.
-
-👉 **Intelligent Subject Management**: Centralized control for curriculum where you can create subjects, apply instant filters, and drill down into specific class assignments and teacher workloads.
-
-👉 **Departmental Governance**: A structural management layer that organizes subjects and faculties into departments, providing detailed views of every student and educator within a specific academic branch.
-
-👉 **Dynamic Faculty Directory**: A robust, paginated directory of all professors featuring advanced search by name or email, profile image hosting via **Cloudinary**, and full teaching schedule visibility.
-
-👉 **Advanced Class Orchestration**: The core engine of the app built with **Drizzle ORM**, allowing Admins to schedule sessions, set capacity limits, and manage complex assignments of multiple teachers across different sections.
-
-👉 **Code-Based Enrollment System**: A "Google Classroom" inspired workflow where students gain instant access to courses by entering a unique 6-8 digit joining code, ensuring a secure and controlled-access environment.
-
-And many more, including code architecture and reusability.
-
-## <a name="quick-start">🤸 Quick Start</a>
-
-Follow these steps to set up the project locally on your machine.
-
-**Prerequisites**
-
-Make sure you have the following installed on your machine:
-
-- [Git](https://git-scm.com/)
-- [Node.js](https://nodejs.org/en)
-- [npm](https://www.npmjs.com/) (Node Package Manager)
-
-**Cloning the Repository**
-
-```bash
-git clone https://github.com/adrianhajdin/classroom-frontend.git
-cd classroom-frontend
+```
+frontend/
+├── src/
+│   ├── App.tsx                        # Root — Refine config, routes, AuthGuard
+│   ├── App.css                        # Global styles, CSS variables, theme tokens
+│   ├── index.tsx                      # React DOM entry point
+│   │
+│   ├── providers/
+│   │   ├── auth.ts                    # Refine AuthProvider — JWT stored in localStorage
+│   │   └── data.ts                    # Custom DataProvider — fetch with auto Bearer token
+│   │
+│   ├── hooks/
+│   │   ├── useCurrentUser.ts          # Reads role + user from localStorage synchronously
+│   │   └── use-mobile.ts             # Detects mobile viewport
+│   │
+│   ├── types/
+│   │   └── index.ts                   # TypeScript types: User, ClassDetails, Subject, etc.
+│   │
+│   ├── constants/
+│   │   └── index.ts                   # BACKEND_URL, Cloudinary config from env vars
+│   │
+│   ├── pages/
+│   │   ├── auth/
+│   │   │   ├── login.tsx              # Split-screen login with role indicator
+│   │   │   └── register.tsx           # Registration with role picker (student/teacher)
+│   │   │
+│   │   ├── dashboard.tsx              # Role-aware dashboard — different view per role
+│   │   ├── profile.tsx                # Edit own name and image
+│   │   │
+│   │   ├── classes/
+│   │   │   ├── list.tsx               # Table with filters; student has "Join Class" dialog
+│   │   │   ├── create.tsx             # Create form — teacher auto-assigned
+│   │   │   └── show.tsx               # Detail page — invite code, roster, schedule
+│   │   │
+│   │   ├── departments/
+│   │   │   ├── list.tsx               # Searchable table
+│   │   │   └── create.tsx             # Create form
+│   │   │
+│   │   ├── subjects/
+│   │   │   ├── list.tsx               # Table with department filter
+│   │   │   └── create.tsx             # Create form with department selector
+│   │   │
+│   │   └── users/
+│   │       ├── list.tsx               # Admin-only user table with role filter
+│   │       └── show.tsx               # User profile view
+│   │
+│   ├── components/
+│   │   ├── brand/
+│   │   │   └── logo.tsx               # NetClass SVG logo — LogoMark and LogoFull
+│   │   │
+│   │   ├── upload-widget.tsx          # Cloudinary upload widget wrapper
+│   │   │
+│   │   ├── ui/                        # shadcn/ui components (button, card, input, etc.)
+│   │   │
+│   │   └── refine-ui/
+│   │       ├── buttons/               # Refine action buttons (create, delete, show, edit)
+│   │       ├── data-table/            # DataTable with pagination, sorting, filtering
+│   │       ├── layout/                # Sidebar, header, layout wrapper, breadcrumb
+│   │       ├── views/                 # ListView, ShowView, CreateView wrappers
+│   │       ├── notification/          # Toast notification provider
+│   │       └── theme/                 # Dark/light mode toggle and provider
+│   │
+│   └── lib/
+│       ├── utils.ts                   # cn() class merging utility
+│       ├── cloudinary.ts              # Cloudinary image URL helpers
+│       └── schema.ts                  # Shared Zod validation schemas
+│
+├── public/
+│   └── favicon.svg                   # NetClass mortarboard favicon
+│
+├── index.html                         # HTML entry — loads Inter font, Cloudinary widget
+├── vite.config.ts
+├── tsconfig.json
+├── components.json                    # shadcn/ui configuration
+└── .env.example
 ```
 
-**Installation**
+---
 
-Install the project dependencies using npm:
+## Environment Variables
+
+Copy `.env.example` to `.env`:
 
 ```bash
+cp .env.example .env
+```
+
+The `.env` file is already pre-filled with defaults for local development:
+
+| Variable | Default | Description |
+|---|---|---|
+| `VITE_BACKEND_URL` | `http://localhost:8000` | Your backend API URL |
+| `VITE_CLOUDINARY_CLOUD_NAME` | _(empty)_ | Cloudinary cloud name — only needed for image uploads |
+| `VITE_CLOUDINARY_UPLOAD_URL` | _(empty)_ | Cloudinary upload endpoint |
+| `VITE_CLOUDINARY_UPLOAD_PRESET` | _(empty)_ | Your unsigned upload preset name |
+
+> Cloudinary is only required if you want to upload profile images or class banners. The rest of the app works without it.
+
+---
+
+## Getting Started
+
+### 1. Install dependencies
+
+```bash
+cd frontend
 npm install
 ```
 
-**Set Up Environment Variables**
-
-Create a new file named `.env` in the root of your project and add the following content:
-
-```env
-# Backend
-VITE_BACKEND_BASE_URL="http://localhost:8000/api/"
-
-# Cloudinary
-VITE_CLOUDINARY_CLOUD_NAME=
-VITE_CLOUDINARY_UPLOAD_PRESET=
-VITE_CLOUDINARY_UPLOAD_URL=
-```
-
-Replace the placeholder values with your real credentials. You can get these by signing up at: [**Cloudinary**](https://jsm.dev/pern-cloudinary).
-
-**Running the Project**
+### 2. Start the dev server
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser to view the project.
+The app will open at **http://localhost:5173**
 
-## <a name="links">🔗 Assets</a>
+> Make sure the backend is already running on port 8000 before opening the app.
 
-Assets and snippets used in the project can be found in the **[video kit](https://jsmastery.com/video-kit/042ed3b7-c304-4683-b6c4-819647956595)**.
+---
 
-<a href="https://jsmastery.com/video-kit/042ed3b7-c304-4683-b6c4-819647956595" target="_blank">
-  <img src="public/readme/readme-videokit.webp" alt="Video Kit Banner">
-</a>
+## Available Scripts
 
-## <a name="more">🚀 More</a>
+| Script | What it does |
+|---|---|
+| `npm run dev` | Start Vite dev server with hot-reload |
+| `npm run build` | Build for production into `dist/` |
+| `npm start` | Serve the production build |
 
-**Advance your skills with Next.js Pro Course**
+---
 
-Enjoyed creating this project? Dive deeper into our PRO courses for a richer learning adventure. They're packed with
-detailed explanations, cool features, and exercises to boost your skills. Give it a go!
+## First Run — Creating the Admin Account
 
-<a href="https://jsm.dev/pern-jsmpro" target="_blank">
-  <img src="public/readme/readme-jsmpro.webp" alt="Project Banner">
-</a>
+The first time you open the app there are no accounts in the database.
 
+1. Navigate to **http://localhost:5173/register**
+2. Fill in your name, email, and password
+3. Select any role — **the first account is always Admin regardless of what you pick**
+4. Submit the form — you are logged in automatically
 
-## Learn More about Refine
+After that, you can create Teacher and Student accounts from the **Users** page while logged in as Admin. Teachers and Students can also self-register at `/register` and will be assigned their chosen role.
 
-This [Refine](https://github.com/refinedev/refine) project was generated with [create refine-app](https://github.com/refinedev/refine/tree/master/packages/create-refine-app).
+---
 
-A React Framework for building internal tools, admin panels, dashboards & B2B apps with unmatched flexibility ✨
+## Pages and Routes
 
-Refine's hooks and components simplifies the development process and eliminates the repetitive tasks by providing industry-standard solutions for crucial aspects of a project, including authentication, access control, routing, networking, state management, and i18n.
+| Route | Page | Who sees it |
+|---|---|---|
+| `/login` | Sign in form | Everyone |
+| `/register` | Create account | Everyone |
+| `/` | Role-aware dashboard | All authenticated users |
+| `/profile` | Edit own profile | All authenticated users |
+| `/departments` | List departments | All authenticated users |
+| `/departments/create` | Create department | Admin |
+| `/subjects` | List subjects | All authenticated users |
+| `/subjects/create` | Create subject | Admin |
+| `/classes` | List classes | All — filtered by role |
+| `/classes/create` | Create class | Admin, Teacher |
+| `/classes/show/:id` | Class detail with roster | All — students must be enrolled |
+| `/users` | List all users | Admin |
+| `/users/show/:id` | User profile | Admin + self |
 
-To learn more about **Refine**, please check out the [Documentation](https://refine.dev/docs)
+Any route without a valid token automatically redirects to `/login`.
 
-- **REST Data Provider** [Docs](https://refine.dev/docs/core/providers/data-provider/#overview)
-- **shadcn/ui** [Docs](https://refine.dev/docs/guides-concepts/general-concepts/#headless-concept)
-- **React Router** [Docs](https://refine.dev/docs/core/providers/router-provider/)
+---
+
+## How Authentication Works in the Frontend
+
+### Login / Register
+Both pages make a direct `fetch()` call to the backend. On success, the token and user object are stored in `localStorage` under the keys `nc_token` and `nc_user`. The page then navigates to `/`.
+
+### Token injection
+The custom data provider in `src/providers/data.ts` reads `localStorage.getItem("nc_token")` before every API call and adds `Authorization: Bearer <token>` to the request headers. This applies to every GET, POST, PUT, and DELETE call automatically.
+
+### Logout
+Clears `nc_token` and `nc_user` from `localStorage` and redirects to `/login`.
+
+### AuthGuard
+`App.tsx` wraps all protected routes in an `<AuthGuard>` component that checks for `nc_token` in `localStorage` synchronously. If the token is missing the user is redirected to `/login` before any page renders.
+
+### Role detection
+`src/hooks/useCurrentUser.ts` reads `nc_user` from `localStorage` synchronously — no async loading, no flicker. Returns `{ user, role, isAdmin, isTeacher, isStudent }`.
+
+---
+
+## Role-Based UI
+
+The UI changes based on the logged-in user's role:
+
+### Admin
+- Sees all 5 stat cards on the dashboard (classes, subjects, teachers, students, departments)
+- Sees class health bar and ratio metrics
+- Sees recent members list
+- Has access to Departments and Subjects create pages
+- Can delete any class or department
+- Can see and manage all users
+
+### Teacher
+- Dashboard shows their own classes and student counts
+- Classes list shows only their classes
+- Create class form auto-assigns them as teacher — no teacher selector shown
+- Can see the student roster and invite code on class detail pages
+- Can regenerate the invite code for their own classes
+
+### Student
+- Dashboard shows enrolled classes
+- Classes list shows only enrolled classes, with a "Join Class" button
+- Clicking "Join Class" opens a dialog to enter an invite code
+- On the class detail page, sees a confirmation that they are enrolled
+- Cannot see invite codes or rosters
+
+---
+
+## Data Provider
+
+The data provider in `src/providers/data.ts` is a fully custom implementation rather than using `@refinedev/rest`'s `createDataProvider`. This was necessary because the built-in wrapper does not reliably inject custom headers on every request type.
+
+Every method (`getList`, `getOne`, `create`, `update`, `deleteOne`) calls `fetch()` directly and prepends `Authorization: Bearer <token>` from `localStorage` before the request is sent.
+
+The base URL comes from `VITE_BACKEND_URL` and routes are constructed as `${BACKEND_URL}/api/${resource}`.
+
+---
+
+## Cloudinary Setup (optional)
+
+Image upload in the class create form and profile page uses the Cloudinary Upload Widget. To enable it:
+
+1. Create a free [Cloudinary](https://cloudinary.com) account
+2. Go to **Settings → Upload → Upload presets** and create an **unsigned** preset
+3. Fill in the three Cloudinary variables in your `.env` file:
+   ```
+   VITE_CLOUDINARY_CLOUD_NAME=your_cloud_name
+   VITE_CLOUDINARY_UPLOAD_URL=https://api.cloudinary.com/v1_1/your_cloud_name/image/upload
+   VITE_CLOUDINARY_UPLOAD_PRESET=your_preset_name
+   ```
+
+If these are left empty, the upload button simply won't work — nothing else breaks.
+
+---
+
+## Theming
+
+The app supports light and dark mode via `next-themes`. The toggle is in the top-right header. Theme preference is saved to `localStorage` automatically.
+
+All colour tokens are defined as CSS custom properties in `src/App.css` using `oklch` colour values. The primary colour is a medium blue (`oklch(0.67 0.16 245)`).
+
+Border radius is set to `0.375rem` (6px) giving inputs and buttons a slightly squared, professional appearance rather than the default pill shape.
