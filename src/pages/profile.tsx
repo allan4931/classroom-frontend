@@ -1,5 +1,5 @@
 import { useGetIdentity, useUpdate, useNotification } from "@refinedev/core";
-import { useForm } from "react-hook-form";
+import { useForm } from "@refinedev/react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useEffect, useState } from "react";
