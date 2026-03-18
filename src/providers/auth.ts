@@ -1,32 +1,38 @@
 import type { AuthProvider } from "@refinedev/core";
 import { BACKEND_URL } from "@/constants/index";
+import { SecureStorage, CSRFProtection, SecureFetch, InputSanitizer } from "@/lib/security";
 
 const TOKEN_KEY = "nc_token";
 const USER_KEY  = "nc_user";
 
-export const getToken = (): string =>
-  typeof window !== "undefined" ? (localStorage.getItem(TOKEN_KEY) ?? "") : "";
+export const getToken = (): string => {
+  if (typeof window === "undefined") return "";
+  return SecureStorage.getItem(TOKEN_KEY) || "";
+};
 
 export const getCurrentUser = (): any => {
-  const raw = typeof window !== "undefined" ? localStorage.getItem(USER_KEY) : null;
-  if (!raw) return null;
-  try { return JSON.parse(raw); } catch { return null; }
+  return SecureStorage.getItem(USER_KEY);
 };
 
 export const authProvider: AuthProvider = {
   login: async ({ email, password }) => {
     try {
-      const res = await fetch(`${BACKEND_URL}/api/auth/login`, {
+      // Validate and sanitize inputs
+      const sanitizedEmail = InputSanitizer.sanitizeEmail(email);
+      if (!InputSanitizer.validateEmail(sanitizedEmail)) {
+        return { success: false, error: { name: "ValidationError", message: "Invalid email format" } };
+      }
+
+      const res = await SecureFetch.apiRequest(`${BACKEND_URL}/api/auth/login`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: sanitizedEmail, password }),
       });
       const json = await res.json();
       if (!res.ok) {
         return { success: false, error: { name: "LoginError", message: json.error ?? "Login failed." } };
       }
-      localStorage.setItem(TOKEN_KEY, json.token);
-      localStorage.setItem(USER_KEY, JSON.stringify(json.user));
+      SecureStorage.setItem(TOKEN_KEY, json.token);
+      SecureStorage.setItem(USER_KEY, json.user);
       return { success: true, redirectTo: "/" };
     } catch {
       return { success: false, error: { name: "NetworkError", message: "Network error — is the server running?" } };
@@ -35,17 +41,28 @@ export const authProvider: AuthProvider = {
 
   register: async ({ email, password, name, role }: any) => {
     try {
-      const res = await fetch(`${BACKEND_URL}/api/auth/register`, {
+      // Validate and sanitize inputs
+      const sanitizedEmail = InputSanitizer.sanitizeEmail(email);
+      const sanitizedName = InputSanitizer.sanitizeName(name);
+      
+      if (!InputSanitizer.validateEmail(sanitizedEmail)) {
+        return { success: false, error: { name: "ValidationError", message: "Invalid email format" } };
+      }
+      
+      if (!sanitizedName || sanitizedName.length < 2) {
+        return { success: false, error: { name: "ValidationError", message: "Name must be at least 2 characters long" } };
+      }
+
+      const res = await SecureFetch.apiRequest(`${BACKEND_URL}/api/auth/register`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, name, role }),
+        body: JSON.stringify({ email: sanitizedEmail, password, name: sanitizedName, role }),
       });
       const json = await res.json();
       if (!res.ok) {
         return { success: false, error: { name: "RegisterError", message: json.error ?? "Registration failed." } };
       }
-      localStorage.setItem(TOKEN_KEY, json.token);
-      localStorage.setItem(USER_KEY, JSON.stringify(json.user));
+      SecureStorage.setItem(TOKEN_KEY, json.token);
+      SecureStorage.setItem(USER_KEY, json.user);
       return { success: true, redirectTo: "/" };
     } catch {
       return { success: false, error: { name: "NetworkError", message: "Network error — is the server running?" } };
@@ -53,8 +70,8 @@ export const authProvider: AuthProvider = {
   },
 
   logout: async () => {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
+    SecureStorage.removeItem(TOKEN_KEY);
+    SecureStorage.removeItem(USER_KEY);
     return { success: true, redirectTo: "/login" };
   },
 
@@ -63,17 +80,15 @@ export const authProvider: AuthProvider = {
     if (!token) return { authenticated: false, redirectTo: "/login" };
 
     try {
-      const res = await fetch(`${BACKEND_URL}/api/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await SecureFetch.authenticatedRequest(`${BACKEND_URL}/api/auth/me`, token);
       if (!res.ok) {
-        localStorage.removeItem(TOKEN_KEY);
-        localStorage.removeItem(USER_KEY);
+        SecureStorage.removeItem(TOKEN_KEY);
+        SecureStorage.removeItem(USER_KEY);
         return { authenticated: false, redirectTo: "/login" };
       }
       const { data } = await res.json();
       // Always refresh the stored user
-      localStorage.setItem(USER_KEY, JSON.stringify(data));
+      SecureStorage.setItem(USER_KEY, data);
       return { authenticated: true };
     } catch {
       // Network down — trust local token, don't log out
@@ -92,8 +107,8 @@ export const authProvider: AuthProvider = {
 
   onError: async (error) => {
     if (error?.statusCode === 401) {
-      localStorage.removeItem(TOKEN_KEY);
-      localStorage.removeItem(USER_KEY);
+      SecureStorage.removeItem(TOKEN_KEY);
+      SecureStorage.removeItem(USER_KEY);
       return { logout: true, redirectTo: "/login" };
     }
     return { error };
