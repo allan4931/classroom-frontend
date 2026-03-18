@@ -46,7 +46,7 @@ function buildUrl(path: string, params?: Record<string, string | number>): strin
 }
 
 export const dataProvider: DataProvider = {
-  getList: async ({ resource, pagination, filters, sorters }) => {
+  getList: async ({ resource, pagination, filters }) => {
     const page     = pagination?.currentPage ?? 1;
     const pageSize = pagination?.pageSize ?? 10;
     const params: Record<string, string | number> = { page, limit: pageSize };

@@ -1,5 +1,5 @@
 import { useCreate, useList, useNavigation } from "@refinedev/core";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "@refinedev/react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useState } from "react";
@@ -62,17 +62,15 @@ export default function SubjectsCreate() {
               <F label="Code" required error={errors.code?.message}><Input placeholder="BIO101" value={codeVal.toUpperCase()} onChange={e => setValue("code", e.target.value.toUpperCase())} /></F>
             </div>
             <F label="Department" required error={errors.departmentId?.message}>
-              <Controller control={control} name="departmentId" render={({ field }) => (
-                <Select value={field.value ? String(field.value) : ""} onValueChange={v => field.onChange(Number(v))}>
-                  <SelectTrigger className={errors.departmentId ? "border-destructive" : ""}>
-                    <SelectValue placeholder={isLoading ? "Loading…" : depts.length === 0 ? "No departments" : "Pick a department"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {depts.map((d: Department) => <SelectItem key={d.id} value={String(d.id)}>{d.name} <span className="text-muted-foreground text-xs">({d.code})</span></SelectItem>)}
-                    {depts.length === 0 && <div className="px-3 py-2 text-sm text-muted-foreground">Create a department first</div>}
-                  </SelectContent>
-                </Select>
-              )} />
+              <Select value={watch("departmentId") ? String(watch("departmentId")) : ""} onValueChange={v => setValue("departmentId", Number(v))}>
+                <SelectTrigger className={errors.departmentId ? "border-destructive" : ""}>
+                  <SelectValue placeholder={isLoading ? "Loading…" : depts.length === 0 ? "No departments" : "Pick a department"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {depts.map((d: Department) => <SelectItem key={d.id} value={String(d.id)}>{d.name} <span className="text-muted-foreground text-xs">({d.code})</span></SelectItem>)}
+                  {depts.length === 0 && <div className="px-3 py-2 text-sm text-muted-foreground">Create a department first</div>}
+                </SelectContent>
+              </Select>
             </F>
             <F label="Description" error={errors.description?.message}><Textarea placeholder="Brief description…" rows={3} {...register("description")} /></F>
             <Button type="submit" size="lg" className="w-full" disabled={isSubmitting || isLoading}>

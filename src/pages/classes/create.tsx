@@ -1,5 +1,5 @@
 import { useCreate, useList, useNavigation } from "@refinedev/core";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "@refinedev/react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useState } from "react";
@@ -124,43 +124,39 @@ export default function CreateClass() {
               </div>
               <div className={isAdmin ? "grid sm:grid-cols-2 gap-4" : ""}>
                 <Field label="Subject" required error={errors.subjectId?.message}>
-                  <Controller control={control} name="subjectId" render={({ field }) => (
-                    <Select value={field.value ? String(field.value) : ""} onValueChange={v => field.onChange(Number(v))}>
-                      <SelectTrigger className={errors.subjectId ? "border-destructive" : ""}>
-                        <SelectValue placeholder={isLoading ? "Loading…" : subjects.length === 0 ? "No subjects" : "Pick a subject"} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {subjects.map((s: Subject) => (
-                          <SelectItem key={s.id} value={String(s.id)}>
-                            <span className="font-medium">{s.name}</span>
-                            <span className="text-muted-foreground text-xs ml-1.5">({s.code})</span>
-                          </SelectItem>
-                        ))}
-                        {subjects.length === 0 && !isLoading && <div className="px-3 py-2 text-sm text-muted-foreground">Create a subject first</div>}
-                      </SelectContent>
-                    </Select>
-                  )} />
+                  <Select value={watch("subjectId") ? String(watch("subjectId")) : ""} onValueChange={v => setValue("subjectId", Number(v))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={isLoading ? "Loading…" : subjects.length === 0 ? "No subjects" : "Pick a subject"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {subjects.map((s: Subject) => (
+                        <SelectItem key={s.id} value={String(s.id)}>
+                          <div className="flex items-center gap-2">
+                            {s.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </Field>
 
                 {isAdmin && (
                   <Field label="Teacher" error={errors.teacherId?.message}>
-                    <Controller control={control} name="teacherId" render={({ field }) => (
-                      <Select value={field.value ?? ""} onValueChange={field.onChange}>
-                        <SelectTrigger>
-                          <SelectValue placeholder={isLoading ? "Loading…" : teachers.length === 0 ? "No teachers" : "Pick a teacher"} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {teachers.map((t: User) => (
-                            <SelectItem key={t.id} value={String(t.id)}>
-                              <div className="flex items-center gap-2">
-                                {t.image ? <img src={t.image} className="w-5 h-5 rounded-full object-cover" alt="" /> : <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-[9px] font-bold text-primary">{t.name.charAt(0)}</div>}
-                                {t.name}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )} />
+                    <Select value={watch("teacherId") ?? ""} onValueChange={v => setValue("teacherId", v)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={isLoading ? "Loading…" : teachers.length === 0 ? "No teachers" : "Pick a teacher"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {teachers.map((t: User) => (
+                          <SelectItem key={t.id} value={String(t.id)}>
+                            <div className="flex items-center gap-2">
+                              {t.image ? <img src={t.image} className="w-5 h-5 rounded-full object-cover" alt="" /> : <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-[9px] font-bold text-primary">{t.name.charAt(0)}</div>}
+                              {t.name}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </Field>
                 )}
               </div>
@@ -185,15 +181,13 @@ export default function CreateClass() {
                   <Input type="number" min={1} max={999} placeholder="30" {...register("capacity")} />
                 </Field>
                 <Field label="Status" required error={errors.status?.message}>
-                  <Controller control={control} name="status" render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="active"><span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-green-500 inline-block" />Active</span></SelectItem>
-                        <SelectItem value="inactive"><span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-gray-400 inline-block" />Inactive</span></SelectItem>
-                      </SelectContent>
-                    </Select>
-                  )} />
+                  <Select value={watch("status") ?? "active"} onValueChange={v => setValue("status", v)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active"><span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-green-500 inline-block" />Active</span></SelectItem>
+                      <SelectItem value="inactive"><span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-gray-400 inline-block" />Inactive</span></SelectItem>
+                    </SelectContent>
+                  </Select>
                 </Field>
               </div>
             </CardContent>
