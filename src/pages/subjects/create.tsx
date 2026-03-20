@@ -63,8 +63,8 @@ export default function SubjectsCreate() {
 
   const codeVal = watch("code") ?? "";
 
-  const { data: deptsResult } = useList<Department>({ resource: "departments", pagination: { pageSize: 100 } });
-  const depts = deptsResult?.data ?? [];
+  const deptsQuery = useList<Department>({ resource: "departments", pagination: { pageSize: 100 } });
+  const depts = deptsQuery.result?.data ?? [];
 
   const onSubmit = (v: FV) => {
     setIsLoading(true);
@@ -127,19 +127,29 @@ export default function SubjectsCreate() {
               <Select
                 value={watch("departmentId") ? String(watch("departmentId")) : ""}
                 onValueChange={v => setValue("departmentId", Number(v))}
+                disabled={deptsQuery.query?.isLoading}
               >
                 <SelectTrigger className={errors.departmentId ? "border-destructive" : ""}>
-                  <SelectValue placeholder={depts.length === 0 ? "No departments yet" : "Pick a department"} />
+                  <SelectValue placeholder={deptsQuery.query?.isLoading ? "Loading departments..." : depts.length === 0 ? "No departments yet" : "Pick a department"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {depts.map(d => (
-                    <SelectItem key={d.id} value={String(d.id)}>
-                      {d.name}
-                      {d.code && <span className="text-muted-foreground text-xs ml-1.5">({d.code})</span>}
-                    </SelectItem>
-                  ))}
-                  {depts.length === 0 && (
-                    <div className="px-3 py-2 text-sm text-muted-foreground">Create a department first</div>
+                  {deptsQuery.query?.isLoading ? (
+                    <div className="px-3 py-2 text-sm text-muted-foreground flex items-center gap-2">
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      Loading departments...
+                    </div>
+                  ) : (
+                    <>
+                      {depts.map(d => (
+                        <SelectItem key={d.id} value={String(d.id)}>
+                          {d.name}
+                          {d.code && <span className="text-muted-foreground text-xs ml-1.5">({d.code})</span>}
+                        </SelectItem>
+                      ))}
+                      {depts.length === 0 && (
+                        <div className="px-3 py-2 text-sm text-muted-foreground">Create a department first</div>
+                      )}
+                    </>
                   )}
                 </SelectContent>
               </Select>
