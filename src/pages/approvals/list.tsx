@@ -20,42 +20,10 @@ import { BACKEND_URL } from "@/constants";
 import { getToken } from "@/providers/auth";
 
 async function fetchPending(status: string): Promise<{ data: PendingRegistration[]; total: number }> {
-  // Check what's in localStorage
-  const rawToken = localStorage.getItem('nc_token');
-  const secureToken = localStorage.getItem('nc_secure_nc_token');
-  
-  console.log('=== APPROVALS TOKEN DEBUG ===');
-  console.log('Raw token:', rawToken);
-  console.log('Secure token:', secureToken);
-  
-  // Try to decode secure token if it exists
-  let actualToken = rawToken;
-  if (!actualToken && secureToken) {
-    try {
-      actualToken = JSON.parse(atob(secureToken));
-    } catch (e) {
-      console.error('Failed to decode secure token:', e);
-    }
-  }
-  
-  console.log('Actual token:', actualToken ? 'exists' : 'missing');
-  console.log('========================');
-  
-  if (!actualToken) {
-    console.log('No token found, returning empty data');
-    return { data: [], total: 0 };
-  }
-  
-  console.log('APPROVALS PAGE - Fetching:', `${BACKEND_URL}/api/approvals?status=${status}&limit=50`);
-  
   const res  = await fetch(`${BACKEND_URL}/api/approvals?status=${status}&limit=50`, {
-    headers: { Authorization: `Bearer ${actualToken}` },
+    headers: { Authorization: `Bearer ${getToken()}` },
   });
-  
-  console.log('APPROVALS PAGE - Response status:', res.status);
-  
   const json = await res.json();
-  console.log('APPROVALS PAGE - Response data:', json);
   return { data: json.data ?? [], total: json.pagination?.total ?? 0 };
 }
 
@@ -215,27 +183,9 @@ export default function ApprovalsPage() {
   const handleApprove = async (id: string) => {
     setActionLoading(id);
     try {
-      // Get token the same way as fetchPending
-      const rawToken = localStorage.getItem('nc_token');
-      const secureToken = localStorage.getItem('nc_secure_nc_token');
-      
-      let actualToken = rawToken;
-      if (!actualToken && secureToken) {
-        try {
-          actualToken = JSON.parse(atob(secureToken));
-        } catch (e) {
-          console.error('Failed to decode secure token:', e);
-        }
-      }
-      
-      if (!actualToken) {
-        showToast("No authentication token found.", "error");
-        return;
-      }
-      
       const res  = await fetch(`${BACKEND_URL}/api/approvals/${id}/approve`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${actualToken}` },
+        headers: { Authorization: `Bearer ${getToken()}` },
       });
       const json = await res.json();
       if (!res.ok) { showToast(json.error ?? "Approval failed.", "error"); return; }
@@ -251,27 +201,9 @@ export default function ApprovalsPage() {
   const handleReject = async (id: string, reason: string) => {
     setActionLoading(id);
     try {
-      // Get token the same way as fetchPending
-      const rawToken = localStorage.getItem('nc_token');
-      const secureToken = localStorage.getItem('nc_secure_nc_token');
-      
-      let actualToken = rawToken;
-      if (!actualToken && secureToken) {
-        try {
-          actualToken = JSON.parse(atob(secureToken));
-        } catch (e) {
-          console.error('Failed to decode secure token:', e);
-        }
-      }
-      
-      if (!actualToken) {
-        showToast("No authentication token found.", "error");
-        return;
-      }
-      
       const res  = await fetch(`${BACKEND_URL}/api/approvals/${id}/reject`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${actualToken}` },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
         body: JSON.stringify({ reason }),
       });
       const json = await res.json();

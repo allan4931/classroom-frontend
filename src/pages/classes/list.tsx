@@ -21,24 +21,33 @@ import { BACKEND_URL } from "@/constants";
 import { getToken } from "@/providers/auth";
 
 export default function ClassesList() {
-  const { isAdmin, isTeacher, isStudent, user: currentUser } = useCurrentUser();
-  const [search, setSearch] = useState("");
+  const { isAdmin, isTeacher, isStudent } = useCurrentUser();
+  const [search, setSearch]   = useState("");
   const [subjectF, setSubjectF] = useState("all");
   const [teacherF, setTeacherF] = useState("all");
-  const [statusF, setStatusF] = useState("all");
+  const [statusF, setStatusF]  = useState("all");
 
-  // Join class dialog state
-  const [joinOpen, setJoinOpen] = useState(false);
+  const [joinOpen, setJoinOpen]     = useState(false);
   const [inviteCode, setInviteCode] = useState("");
-  const [joining, setJoining] = useState(false);
-  const [joinMsg, setJoinMsg] = useState<{ type: "error" | "success"; text: string } | null>(null);
+  const [joining, setJoining]       = useState(false);
+  const [joinMsg, setJoinMsg]       = useState<{ type: "error" | "success"; text: string } | null>(null);
 
-  const subjectsQuery = useList<Subject>({ resource: "subjects", pagination: { pageSize: 100 }, queryOptions: { enabled: !isStudent } });
-  const subjects = subjectsQuery.result?.data ?? [];
-  const teachersQuery = useList<User>({ resource: "users", filters: [{ field: "role", operator: "eq", value: "teacher" }], pagination: { pageSize: 100 }, queryOptions: { enabled: isAdmin } });
-  const teachers = teachersQuery.result?.data ?? [];
+  // ✅ Refine v5: useList returns { data: { data, total } | undefined, isLoading }
+  // Only fetch subjects/teachers when relevant — use standard boolean, not queryOptions
+  const { data: subjectsResult } = useList<Subject>({
+    resource: "subjects",
+    pagination: { pageSize: 100 },
+  });
+  const subjects = (isStudent ? [] : subjectsResult?.data) ?? [];
 
-  const searchFilters  = search    ? [{ field: "name",    operator: "contains" as const, value: search }]    : [];
+  const { data: teachersResult } = useList<User>({
+    resource: "users",
+    filters: [{ field: "role", operator: "eq", value: "teacher" }],
+    pagination: { pageSize: 100 },
+  });
+  const teachers = (isAdmin ? teachersResult?.data : []) ?? [];
+
+  const searchFilters  = search     ? [{ field: "name",    operator: "contains" as const, value: search    }] : [];
   const subjectFilters = subjectF !== "all" ? [{ field: "subject", operator: "eq" as const, value: subjectF }] : [];
   const teacherFilters = teacherF !== "all" ? [{ field: "teacher", operator: "eq" as const, value: teacherF }] : [];
   const statusFilters  = statusF  !== "all" ? [{ field: "status",  operator: "eq" as const, value: statusF  }] : [];
@@ -69,7 +78,9 @@ export default function ClassesList() {
     },
     ...(isStudent ? [] : [{
       id: "teacher", accessorKey: "teacher.name", size: 140, header: () => <p className="column-title">Teacher</p>,
-      cell: ({ row }: { row: { original: ClassDetails } }) => <span className="text-sm">{row.original.teacher?.name ?? "—"}</span>,
+      cell: ({ row }: { row: { original: ClassDetails } }) => (
+        <span className="text-sm">{row.original.teacher?.name ?? "—"}</span>
+      ),
     }]),
     {
       id: "capacity", accessorKey: "capacity", size: 75, header: () => <p className="column-title">Cap.</p>,
@@ -125,7 +136,6 @@ export default function ClassesList() {
       <div className="intro-row">
         <p className="text-muted-foreground">{isStudent ? "Classes you are enrolled in." : "Manage all classes."}</p>
         <div className="actions-row">
-          {/* Search */}
           {!isStudent && (
             <div className="search-field">
               <Search className="search-icon" />
@@ -134,7 +144,6 @@ export default function ClassesList() {
           )}
 
           <div className="flex flex-wrap gap-2">
-            {/* Filters — admin/teacher */}
             {!isStudent && subjects.length > 0 && (
               <Select value={subjectF} onValueChange={setSubjectF}>
                 <SelectTrigger className="w-[150px]"><SelectValue placeholder="Subject" /></SelectTrigger>
@@ -162,13 +171,11 @@ export default function ClassesList() {
               </SelectContent>
             </Select>
 
-            {/* Join button — student */}
             {isStudent && (
               <Button onClick={() => { setJoinOpen(true); setJoinMsg(null); setInviteCode(""); }} size="sm" className="gap-1.5">
                 <Key className="w-3.5 h-3.5" />Join Class
               </Button>
             )}
-            {/* Create button — admin/teacher */}
             {(isAdmin || isTeacher) && <CreateButton resource="classes" />}
           </div>
         </div>
@@ -176,7 +183,6 @@ export default function ClassesList() {
 
       <DataTable table={table} />
 
-      {/* Join class dialog */}
       <Dialog open={joinOpen} onOpenChange={setJoinOpen}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>

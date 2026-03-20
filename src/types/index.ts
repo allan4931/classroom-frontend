@@ -1,4 +1,5 @@
 export type UserRole = "admin" | "teacher" | "student";
+export type UserStatus = "active" | "suspended";
 
 export interface CurrentUser {
   id: string;
@@ -6,6 +7,31 @@ export interface CurrentUser {
   email: string;
   role: UserRole;
   image?: string;
+  isMainAdmin?: boolean;
+  status?: UserStatus;
+}
+
+export interface UserProfile {
+  userId: string;
+  bio?: string;
+  phone?: string;
+  address?: string;
+  website?: string;
+  academicInfo?: Record<string, string>;
+  notificationPrefs?: {
+    emailLogin: boolean;
+    emailApproval: boolean;
+    emailClasses: boolean;
+  };
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface UserWithProfile extends CurrentUser {
+  profile?: UserProfile;
+  completeness?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Subject {
@@ -51,6 +77,19 @@ export interface User extends CurrentUser {
   createdAt?: string;
 }
 
+export interface PendingRegistration {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  status: "pending" | "approved" | "rejected";
+  notes?: string;
+  rejectionReason?: string;
+  approvedById?: string;
+  approvedAt?: string;
+  createdAt: string;
+}
+
 export type ListResponse<T = unknown> = {
   data?: T[];
   pagination?: { page: number; limit: number; total: number; totalPages: number };
@@ -58,8 +97,8 @@ export type ListResponse<T = unknown> = {
 export type CreateResponse<T = unknown> = { data?: T };
 export type GetOneResponse<T = unknown> = { data?: T };
 
-// Cloudinary
 export interface UploadWidgetValue { url: string; publicId: string; }
+
 declare global {
   interface CloudinaryUploadWidgetResults {
     event: string;
@@ -67,6 +106,11 @@ declare global {
   }
   interface CloudinaryWidget { open: () => void; }
   interface Window {
-    cloudinary?: { createUploadWidget: (options: Record<string, unknown>, callback: (err: unknown, result: CloudinaryUploadWidgetResults) => void) => CloudinaryWidget };
+    cloudinary?: {
+      createUploadWidget: (
+        options: Record<string, unknown>,
+        callback: (err: unknown, result: CloudinaryUploadWidgetResults) => void
+      ) => CloudinaryWidget;
+    };
   }
 }

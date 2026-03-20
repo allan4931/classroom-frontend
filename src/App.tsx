@@ -9,10 +9,11 @@ import { Toaster }                   from "./components/refine-ui/notification/t
 import { useNotificationProvider }   from "./components/refine-ui/notification/use-notification-provider";
 import { ThemeProvider }             from "./components/refine-ui/theme/theme-provider";
 import { Layout }                    from "@/components/refine-ui/layout/layout.tsx";
+import { ErrorComponent }            from "@/components/refine-ui/layout/error-component.tsx";
 import { dataProvider }              from "@/providers/data";
 import { authProvider }              from "@/providers/auth";
-import { BookOpen, Building2, GraduationCap, Home, Users } from "lucide-react";
-import { LogoMark }                  from "@/components/brand/logo.tsx";
+import { BookOpen, Building2, GraduationCap, Home, Users, ClipboardCheck } from "lucide-react";
+import { LogoMark } from "@/components/brand/logo.tsx";
 
 import LoginPage       from "@/pages/auth/login.tsx";
 import RegisterPage    from "@/pages/auth/register.tsx";
@@ -27,8 +28,8 @@ import ClassesShow       from "@/pages/classes/show.tsx";
 import UsersList         from "@/pages/users/list.tsx";
 import UsersShow         from "@/pages/users/show.tsx";
 import ProfilePage       from "@/pages/profile.tsx";
+import ApprovalsPage     from "@/pages/approvals/list.tsx";
 
-/** Minimal auth gate — redirect to /login if no token */
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const token = typeof window !== "undefined" ? localStorage.getItem("nc_token") : null;
   if (!token) return <Navigate to="/login" replace />;
@@ -53,12 +54,13 @@ function App() {
                 title: { icon: <LogoMark size={26} />, text: "NetClass" },
               }}
               resources={[
-                { name: "dashboard",   list: "/",               meta: { label: "Dashboard",   icon: <Home />          } },
-                { name: "departments", list: "/departments",     create: "/departments/create", meta: { label: "Departments", icon: <Building2 />      } },
-                { name: "subjects",    list: "/subjects",        create: "/subjects/create",    meta: { label: "Subjects",    icon: <BookOpen />        } },
-                { name: "classes",     list: "/classes",         create: "/classes/create",     show: "/classes/show/:id", meta: { label: "Classes", icon: <GraduationCap /> } },
-                { name: "users",       list: "/users",           show: "/users/show/:id",       meta: { label: "Users",       icon: <Users />           } },
-                { name: "profile",     list: "/profile",         meta: { label: "Profile", hide: true } },
+                { name: "dashboard",   list: "/",                   meta: { label: "Dashboard",   icon: <Home />             } },
+                { name: "departments", list: "/departments",         create: "/departments/create", meta: { label: "Departments", icon: <Building2 />        } },
+                { name: "subjects",    list: "/subjects",            create: "/subjects/create",    meta: { label: "Subjects",    icon: <BookOpen />          } },
+                { name: "classes",     list: "/classes",             create: "/classes/create",     show: "/classes/show/:id", meta: { label: "Classes", icon: <GraduationCap /> } },
+                { name: "users",       list: "/users",               show: "/users/show/:id",       meta: { label: "Users",       icon: <Users />             } },
+                { name: "approvals",   list: "/approvals",           meta: { label: "Approvals",   icon: <ClipboardCheck />   } },
+                { name: "profile",     list: "/profile",             meta: { label: "Profile",     hide: true } },
               ]}
             >
               <Routes>
@@ -66,14 +68,15 @@ function App() {
                 <Route path="/login"    element={<LoginPage />}    />
                 <Route path="/register" element={<RegisterPage />} />
 
-                {/* Protected — wrapped in AuthGuard + sidebar Layout */}
+                {/* Protected */}
                 <Route element={
                   <AuthGuard>
                     <Layout><Outlet /></Layout>
                   </AuthGuard>
                 }>
-                  <Route path="/"        element={<Dashboard />}   />
-                  <Route path="/profile" element={<ProfilePage />} />
+                  <Route path="/"          element={<Dashboard />}    />
+                  <Route path="/profile"   element={<ProfilePage />}  />
+                  <Route path="/approvals" element={<ApprovalsPage />} />
 
                   <Route path="/departments">
                     <Route index         element={<DepartmentsList />}   />
@@ -97,7 +100,6 @@ function App() {
                   </Route>
                 </Route>
 
-                {/* Fallback */}
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
 
@@ -107,13 +109,11 @@ function App() {
               <DocumentTitleHandler
                 handler={({ resource, action }) => {
                   const labels: Record<string, string> = {
-                    dashboard: "Dashboard", departments: "Departments",
-                    subjects: "Subjects", classes: "Classes",
-                    users: "Users", profile: "Profile",
+                    dashboard: "Dashboard", departments: "Departments", subjects: "Subjects",
+                    classes: "Classes", users: "Users", profile: "Profile", approvals: "Approvals",
                   };
                   const base   = labels[resource?.name ?? ""] ?? "NetClass";
-                  const suffix = action && action !== "list"
-                    ? ` · ${action.charAt(0).toUpperCase() + action.slice(1)}` : "";
+                  const suffix = action && action !== "list" ? ` · ${action.charAt(0).toUpperCase() + action.slice(1)}` : "";
                   return `${base}${suffix} — NetClass`;
                 }}
               />

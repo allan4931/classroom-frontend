@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { useForm } from "@refinedev/react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Eye, EyeOff, GraduationCap, Loader2, LogIn, ShieldCheck, School } from "lucide-react";
+import {
+  Eye, EyeOff, GraduationCap, Loader2, LogIn,
+  ShieldCheck, School, Clock, RefreshCw,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,26 +20,69 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 const ROLES = [
-  { id: "student",  label: "Student",  icon: GraduationCap, color: "text-green-600",  bg: "bg-green-500/10  border-green-200  dark:border-green-800"  },
-  { id: "teacher",  label: "Teacher",  icon: School,         color: "text-blue-600",   bg: "bg-blue-500/10   border-blue-200   dark:border-blue-800"   },
-  { id: "admin",    label: "Admin",    icon: ShieldCheck,    color: "text-violet-600", bg: "bg-violet-500/10 border-violet-200 dark:border-violet-800" },
+  { id: "student",  label: "Student", icon: GraduationCap, color: "text-green-600",  bg: "bg-green-500/10  border-green-200  dark:border-green-800"  },
+  { id: "teacher",  label: "Teacher", icon: School,         color: "text-blue-600",   bg: "bg-blue-500/10   border-blue-200   dark:border-blue-800"   },
+  { id: "admin",    label: "Admin",   icon: ShieldCheck,    color: "text-violet-600", bg: "bg-violet-500/10 border-violet-200 dark:border-violet-800" },
 ] as const;
+
+/* ── Pending / rejected screen shown when login returns pending:true ── */
+function PendingLoginScreen({ message, email }: { message: string; email: string }) {
+  const [checking, setChecking]     = useState(false);
+  const [checkResult, setCheckResult] = useState<string | null>(null);
+
+  const checkStatus = async () => {
+    setChecking(true);
+    try {
+      const res  = await fetch(`${BACKEND_URL}/api/auth/pending-status?email=${encodeURIComponent(email)}`);
+      const json = await res.json();
+      setCheckResult(json.message ?? "Could not retrieve status.");
+    } catch {
+      setCheckResult("Could not connect to server. Please try again.");
+    } finally { setChecking(false); }
+  };
+
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center p-6">
+      <div className="w-full max-w-md text-center space-y-6">
+        <div className="w-20 h-20 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto">
+          <Clock className="w-10 h-10 text-amber-600" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-xl font-bold">Account Pending Approval</h2>
+          <p className="text-muted-foreground text-sm leading-relaxed">{message}</p>
+        </div>
+        <Button variant="outline" className="w-full" onClick={checkStatus} disabled={checking}>
+          {checking
+            ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Checking…</>
+            : <><RefreshCw className="w-4 h-4 mr-2" />Check Status</>}
+        </Button>
+        {checkResult && (
+          <div className="p-3 rounded-md bg-primary/5 border border-primary/20 text-sm">{checkResult}</div>
+        )}
+        <p className="text-sm text-muted-foreground">
+          <button className="underline text-primary hover:opacity-80" onClick={() => window.location.reload()}>
+            Try logging in again
+          </button>{" "}once your account is approved.
+        </p>
+      </div>
+    </div>
+  );
+}
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const [showPw, setShowPw]   = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState("");
-  // Role selector is UI-only (hint for user — the server decides role from the account)
-  const [selectedRole, setSelectedRole] = useState<"student" | "teacher" | "admin">("student");
+  const [showPw, setShowPw]         = useState(false);
+  const [loading, setLoading]       = useState(false);
+  const [error, setError]           = useState("");
+  const [selectedRole, setSelectedRole] = useState<"student"|"teacher"|"admin">("student");
+  const [pendingScreen, setPendingScreen] = useState<{ message: string; email: string } | null>(null);
 
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, watch, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
 
   const onSubmit = async (data: FormData) => {
-    setLoading(true);
-    setError("");
+    setLoading(true); setError("");
     try {
       const res  = await fetch(`${BACKEND_URL}/api/auth/login`, {
         method: "POST",
@@ -44,17 +90,28 @@ export default function LoginPage() {
         body: JSON.stringify({ email: data.email, password: data.password }),
       });
       const json = await res.json();
-      if (!res.ok) { setError(json.error ?? "Login failed."); return; }
+
+      if (!res.ok) {
+        // Pending account — show friendly screen instead of raw error
+        if (json.pending) {
+          setPendingScreen({ message: json.error, email: data.email });
+          return;
+        }
+        setError(json.error ?? "Login failed. Please check your credentials.");
+        return;
+      }
 
       localStorage.setItem("nc_token", json.token);
       localStorage.setItem("nc_user",  JSON.stringify(json.user));
       navigate("/", { replace: true });
     } catch {
       setError("Network error — is the server running?");
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
+
+  if (pendingScreen) {
+    return <PendingLoginScreen message={pendingScreen.message} email={pendingScreen.email} />;
+  }
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -75,7 +132,7 @@ export default function LoginPage() {
             Your complete classroom management platform — for admins, teachers, and students.
           </p>
           <div className="grid grid-cols-3 gap-3 pt-4">
-            {[{n:"Admin",d:"Full control"},{n:"Teacher",d:"Manage classes"},{n:"Student",d:"Join & learn"}].map(x=>(
+            {[{ n: "Admin", d: "Full control" }, { n: "Teacher", d: "Manage classes" }, { n: "Student", d: "Join & learn" }].map(x => (
               <div key={x.n} className="bg-white/10 rounded-xl p-3 backdrop-blur-sm">
                 <p className="text-sm font-bold">{x.n}</p>
                 <p className="text-xs text-white/70 mt-0.5">{x.d}</p>
@@ -97,13 +154,13 @@ export default function LoginPage() {
             <p className="text-muted-foreground text-sm mt-1">Sign in to your NetClass account</p>
           </div>
 
-          {/* Role indicator (decorative — server sets the real role) */}
+          {/* Decorative role selector */}
           <div>
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">I am logging in as…</p>
             <div className="grid grid-cols-3 gap-2">
               {ROLES.map(r => {
-                const Icon  = r.icon;
-                const active= selectedRole === r.id;
+                const Icon   = r.icon;
+                const active = selectedRole === r.id;
                 return (
                   <button key={r.id} type="button" onClick={() => setSelectedRole(r.id)}
                     className={cn("flex flex-col items-center gap-1.5 p-3 rounded-lg border-2 transition-all text-sm font-medium",
@@ -153,9 +210,7 @@ export default function LoginPage() {
 
           <p className="text-center text-sm text-muted-foreground">
             Don't have an account?{" "}
-            <Link to="/register" className="font-semibold text-primary hover:underline">
-              Create account
-            </Link>
+            <Link to="/register" className="font-semibold text-primary hover:underline">Create account</Link>
           </p>
         </div>
       </div>

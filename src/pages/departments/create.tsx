@@ -1,5 +1,5 @@
 import { useCreate, useNavigation } from "@refinedev/core";
-import { useForm } from "@refinedev/react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useState } from "react";
@@ -8,19 +8,37 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Loader2, Building2, CheckCircle2, AlertCircle } from "lucide-react";
+import { ArrowLeft, Loader2, Building2, CheckCircle2, AlertCircle, Info } from "lucide-react";
+
+/** Rejects strings with no real word content (pure symbols / gibberish) */
+function isMeaningful(val: string) {
+  return /[a-zA-Z]{2,}/.test(val) && (val.split("").filter(c => !/[a-zA-Z0-9\s\-'&\/().]/.test(c)).length / val.length) <= 0.3;
+}
 
 const schema = z.object({
-  name: z.string().min(2, "At least 2 characters"),
-  code: z.string().min(2, "At least 2 characters"),
-  description: z.string().optional(),
+  name: z
+    .string()
+    .min(2, "At least 2 characters")
+    .max(120, "Too long")
+    .refine(isMeaningful, "Name must contain meaningful words, not random characters."),
+  code: z
+    .string()
+    .min(2, "At least 2 characters")
+    .max(10, "Max 10 characters")
+    .regex(/^[A-Za-z0-9]+$/, "Code must be letters and numbers only (e.g. CS, MATH101)"),
+  description: z
+    .string()
+    .max(300, "Max 300 characters")
+    .refine(v => !v || isMeaningful(v), "Description must contain meaningful words.")
+    .optional(),
 });
 type FV = z.infer<typeof schema>;
 
-const F = ({ label, required, error, children }: { label: string; required?: boolean; error?: string; children: React.ReactNode }) => (
+const F = ({ label, required, error, hint, children }: { label: string; required?: boolean; error?: string; hint?: string; children: React.ReactNode }) => (
   <div className="space-y-1.5">
     <Label className="text-sm font-medium">{label}{required && <span className="text-destructive ml-0.5">*</span>}</Label>
     {children}
+    {hint && !error && <p className="text-xs text-muted-foreground flex items-center gap-1"><Info className="w-3 h-3" />{hint}</p>}
     {error && <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{error}</p>}
   </div>
 );
@@ -32,31 +50,60 @@ export default function DepartmentsCreate() {
   const [done, setDone] = useState(false);
   const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = useForm<FV>({ resolver: zodResolver(schema) });
   const codeVal = watch("code") ?? "";
+
   const onSubmit = (v: FV) => {
     setIsLoading(true);
     createMutation.mutate(
-      { resource: "departments", values: { ...v, code: v.code.toUpperCase() } }, 
+      { resource: "departments", values: { ...v, code: v.code.toUpperCase() } },
       { onSuccess: () => { setDone(true); setTimeout(() => list("departments"), 1200); }, onSettled: () => setIsLoading(false) }
     );
   };
 
-  if (done) return <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4"><div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center"><CheckCircle2 className="w-8 h-8 text-green-600" /></div><h2 className="text-xl font-bold">Department Created!</h2></div>;
+  if (done) return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+      <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+        <CheckCircle2 className="w-8 h-8 text-green-600" />
+      </div>
+      <h2 className="text-xl font-bold">Department Created!</h2>
+    </div>
+  );
 
   return (
     <div className="container mx-auto max-w-xl px-4 pb-12">
       <div className="flex items-center gap-3 py-6">
         <Button variant="ghost" size="icon" onClick={() => list("departments")}><ArrowLeft className="w-4 h-4" /></Button>
-        <div><h1 className="text-2xl font-bold">Create Department</h1><p className="text-sm text-muted-foreground">Add an academic department</p></div>
+        <div>
+          <h1 className="text-2xl font-bold">Create Department</h1>
+          <p className="text-sm text-muted-foreground">Add an academic department</p>
+        </div>
       </div>
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <Card className="border-0 shadow-sm">
           <CardContent className="pt-6 space-y-5">
-            <div className="flex items-center gap-2 mb-2"><div className="p-1.5 rounded-md bg-rose-500/10"><Building2 className="w-4 h-4 text-rose-600" /></div><h3 className="font-semibold">Department Details</h3></div>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <F label="Name" required error={errors.name?.message}><Input placeholder="Computer Science" {...register("name")} /></F>
-              <F label="Code" required error={errors.code?.message}><Input placeholder="CS" value={codeVal.toUpperCase()} onChange={e => setValue("code", e.target.value.toUpperCase())} /></F>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="p-1.5 rounded-md bg-rose-500/10"><Building2 className="w-4 h-4 text-rose-600" /></div>
+              <h3 className="font-semibold">Department Details</h3>
             </div>
-            <F label="Description" error={errors.description?.message}><Textarea placeholder="Brief description…" rows={3} {...register("description")} /></F>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <F label="Department Name" required error={errors.name?.message}
+                hint="e.g. Computer Science, Fine Arts">
+                <Input placeholder="Computer Science" {...register("name")} className={errors.name ? "border-destructive" : ""} />
+              </F>
+              <F label="Code" required error={errors.code?.message}
+                hint="2–10 letters/digits, e.g. CS or MATH">
+                <Input
+                  placeholder="CS"
+                  value={codeVal.toUpperCase()}
+                  onChange={e => setValue("code", e.target.value.toUpperCase())}
+                  className={errors.code ? "border-destructive" : ""}
+                  maxLength={10}
+                />
+              </F>
+            </div>
+            <F label="Description" error={errors.description?.message}
+              hint="Brief description of this department's focus">
+              <Textarea placeholder="e.g. Covers computer science, programming, and software engineering." rows={3} {...register("description")} className={errors.description ? "border-destructive" : ""} />
+            </F>
             <Button type="submit" size="lg" className="w-full" disabled={isSubmitting || isLoading}>
               {(isSubmitting || isLoading) ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Creating…</> : "Create Department"}
             </Button>

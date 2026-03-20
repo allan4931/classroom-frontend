@@ -1,4 +1,5 @@
 import { useList } from "@refinedev/core";
+import { useEffect, useState } from "react";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import type { ClassDetails, Subject, User } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,17 +11,19 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   GraduationCap, BookOpen, Users, Building2, TrendingUp, ArrowRight,
   Plus, Activity, Zap, ChevronRight, School, ShieldCheck, Star,
-  CalendarDays, Key,
+  CalendarDays, Key, ClipboardCheck,
 } from "lucide-react";
+import { BACKEND_URL } from "@/constants";
+import { getToken } from "@/providers/auth";
 
 type Dept = { id: number; name: string; code: string };
 
-function StatCard({ title, value, sub, icon: Icon, gradient, loading }: {
+function StatCard({ title, value, sub, icon: Icon, gradient, loading, href }: {
   title: string; value: string | number; sub: string;
-  icon: React.ElementType; gradient: string; loading?: boolean;
+  icon: React.ElementType; gradient: string; loading?: boolean; href?: string;
 }) {
-  return (
-    <Card className="relative overflow-hidden border-0 shadow-sm hover:shadow-md transition-all group">
+  const inner = (
+    <Card className={`relative overflow-hidden border-0 shadow-sm hover:shadow-md transition-all group ${href ? "cursor-pointer" : ""}`}>
       <div className={`absolute inset-0 opacity-[0.07] group-hover:opacity-[0.13] transition-opacity ${gradient}`} />
       <CardContent className="pt-5 pb-4 px-5">
         <div className="flex items-start justify-between">
@@ -36,6 +39,7 @@ function StatCard({ title, value, sub, icon: Icon, gradient, loading }: {
       </CardContent>
     </Card>
   );
+  return href ? <a href={href}>{inner}</a> : inner;
 }
 
 function ClassRow({ cls }: { cls: ClassDetails }) {
@@ -89,8 +93,8 @@ function UserRow({ user }: { user: User }) {
   );
 }
 
-function QA({ href, icon: Icon, label, desc, color }: {
-  href: string; icon: React.ElementType; label: string; desc: string; color: string;
+function QA({ href, icon: Icon, label, desc, color, badge }: {
+  href: string; icon: React.ElementType; label: string; desc: string; color: string; badge?: number;
 }) {
   return (
     <a href={href} className="flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-muted/30 transition-all group">
@@ -99,6 +103,9 @@ function QA({ href, icon: Icon, label, desc, color }: {
         <p className="text-sm font-medium group-hover:text-primary transition-colors">{label}</p>
         <p className="text-xs text-muted-foreground">{desc}</p>
       </div>
+      {badge !== undefined && badge > 0 && (
+        <Badge className="ml-auto text-[10px] px-1.5 py-0 h-4 bg-amber-500 text-white border-0 shrink-0">{badge > 99 ? "99+" : badge}</Badge>
+      )}
       <ArrowRight className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-muted-foreground shrink-0" />
     </a>
   );
@@ -106,40 +113,56 @@ function QA({ href, icon: Icon, label, desc, color }: {
 
 export default function Dashboard() {
   const { user, isAdmin, isTeacher, isStudent } = useCurrentUser();
+  const [pendingCount, setPendingCount] = useState(0);
+  const [stats, setStats] = useState<any>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
 
-  // Always fetch — backend RBAC filters by role
-  const classesQuery = useList<ClassDetails>({
-    resource: "classes", pagination: { pageSize: 6 },
-  });
-  const classesData = classesQuery.result?.data;
-  const classLoading = classesQuery.query?.isLoading;
-  const subjectsQuery = useList<Subject>({ resource: "subjects",    pagination: { pageSize: 1 } });
-  const subjectsData = subjectsQuery.result?.data;
-  const teachersQuery = useList<User>({
-    resource: "users",
-    filters: [{ field: "role", operator: "eq", value: "teacher" }],
-    pagination: { pageSize: 5 },
-  });
-  const teachersData = teachersQuery.result?.data;
-  const studentsQuery = useList<User>({
-    resource: "users",
-    filters: [{ field: "role", operator: "eq", value: "student" }],
-    pagination: { pageSize: 1 },
-  });
-  const studentsData = studentsQuery.result?.data;
-  const deptsQuery = useList<Dept>({ resource: "departments", pagination: { pageSize: 1 } });
-  const deptsData = deptsQuery.result?.data;
-  const recentUsersQuery = useList<User>({ resource: "users",       pagination: { pageSize: 5 } });
-  const recentUsersData = recentUsersQuery.result?.data;
+  // Fetch dashboard stats
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/dashboard/stats`, {
+          headers: { Authorization: `Bearer ${getToken()}` },
+        });
+        const json = await res.json();
+        setStats(json.data);
+        setStatsLoading(false);
+      } catch {
+        setStatsLoading(false);
+      }
+    };
+    loadStats();
+  }, []);
 
-  const classes       = classesData ?? [];
-  const totalClasses  = classesQuery.result?.total ?? 0;
-  const totalSubjects = subjectsQuery.result?.total ?? 0;
-  const totalTeachers = teachersQuery.result?.total ?? 0;
-  const totalStudents = studentsQuery.result?.total ?? 0;
-  const totalDepts    = deptsQuery.result?.total ?? 0;
-  const recentUsers   = recentUsersData ?? [];
-  const activeClasses = classes.filter((c: ClassDetails) => c.status === "active").length;
+  // Fetch pending approval count for admin dashboard
+  useEffect(() => {
+    if (!isAdmin) return;
+    const load = async () => {
+      try {
+        const res  = await fetch(`${BACKEND_URL}/api/approvals?status=pending&limit=1`, {
+          headers: { Authorization: `Bearer ${getToken()}` },
+        });
+        const json = await res.json();
+        setPendingCount(json.pagination?.total ?? 0);
+      } catch {}
+    };
+    load();
+  }, [isAdmin]);
+
+  const classesQuery = useList<ClassDetails>({ resource: "classes", pagination: { pageSize: 6 } });
+  const usersQuery = useList<User>({ resource: "users", pagination: { pageSize: 5 } });
+
+  const classes       = classesQuery.result?.data ?? [];
+  const recentUsers   = usersQuery.result?.data ?? [];
+  const classLoading   = classesQuery.query?.isLoading ?? false;
+
+  // Use stats from dashboard API or fall back to 0
+  const totalClasses  = stats?.academics?.classes?.total ?? 0;
+  const totalSubjects = stats?.academics?.subjects ?? 0;
+  const totalTeachers = stats?.users?.teachers ?? 0;
+  const totalStudents = stats?.users?.students ?? 0;
+  const totalDepts    = stats?.academics?.departments ?? 0;
+  const activeClasses = stats?.academics?.classes?.active ?? 0;
   const activePct     = totalClasses > 0 ? Math.round((activeClasses / totalClasses) * 100) : 0;
 
   const now     = new Date();
@@ -162,6 +185,7 @@ export default function Dashboard() {
 
   return (
     <div className="container mx-auto px-4 pb-12 max-w-6xl">
+
       {/* Greeting */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-6">
         <div>
@@ -181,6 +205,14 @@ export default function Dashboard() {
           </p>
         </div>
         <div className="flex gap-2 shrink-0">
+          {isAdmin && pendingCount > 0 && (
+            <Button asChild size="sm" variant="outline" className="border-amber-400 text-amber-700 bg-amber-50 hover:bg-amber-100 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-700">
+              <a href="/approvals" className="flex items-center gap-1.5">
+                <ClipboardCheck className="w-4 h-4" />
+                {pendingCount} Pending
+              </a>
+            </Button>
+          )}
           {(isAdmin || isTeacher) && (
             <Button asChild size="sm">
               <a href="/classes/create"><Plus className="w-4 h-4 mr-1.5" />New Class</a>
@@ -194,24 +226,39 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Stats — admin sees all, others see subset */}
-      <div className={`grid gap-3 mb-6 ${isAdmin ? "grid-cols-2 lg:grid-cols-5" : "grid-cols-2"}`}>
-        <StatCard title="Classes"  value={totalClasses}  sub={`${activeClasses} active`} icon={GraduationCap} gradient="bg-blue-500" loading={classLoading} />
-        {isAdmin && <>
-          <StatCard title="Subjects"    value={totalSubjects} sub="Across all depts"        icon={BookOpen}   gradient="bg-violet-500" />
-          <StatCard title="Teachers"    value={totalTeachers} sub="Instructors"             icon={Users}      gradient="bg-amber-500" />
-          <StatCard title="Students"    value={totalStudents} sub="Enrolled learners"       icon={GraduationCap} gradient="bg-green-500" />
-          <StatCard title="Departments" value={totalDepts}    sub="Academic divisions"      icon={Building2}  gradient="bg-rose-500" />
-        </>}
-        {(isTeacher || isStudent) && (
-          <StatCard title={isTeacher ? "My Students" : "Subjects"}
+      {/* Admin stat cards — clickable pending approvals card */}
+      {isAdmin && (
+        <div className="grid grid-cols-2 lg:grid-cols-6 gap-3 mb-6">
+          <StatCard title="Classes"     value={totalClasses}  sub={`${activeClasses} active`} icon={GraduationCap} gradient="bg-blue-500"   loading={statsLoading || classLoading} />
+          <StatCard title="Subjects"    value={totalSubjects} sub="Across all depts"          icon={BookOpen}      gradient="bg-violet-500" loading={statsLoading} />
+          <StatCard title="Teachers"    value={totalTeachers} sub="Instructors"               icon={Users}         gradient="bg-amber-500" loading={statsLoading} />
+          <StatCard title="Students"    value={totalStudents} sub="Enrolled learners"         icon={GraduationCap} gradient="bg-green-500" loading={statsLoading} />
+          <StatCard title="Departments" value={totalDepts}    sub="Academic divisions"        icon={Building2}     gradient="bg-rose-500" loading={statsLoading} />
+          <StatCard
+            title="Pending"
+            value={pendingCount}
+            sub="Need approval"
+            icon={ClipboardCheck}
+            gradient={pendingCount > 0 ? "bg-amber-500" : "bg-muted"}
+            href="/approvals"
+          />
+        </div>
+      )}
+
+      {/* Teacher / student stats */}
+      {(isTeacher || isStudent) && (
+        <div className="grid grid-cols-2 gap-3 mb-6">
+          <StatCard title="Classes" value={totalClasses} sub={`${activeClasses} active`} icon={GraduationCap} gradient="bg-blue-500" loading={classLoading} />
+          <StatCard
+            title={isTeacher ? "My Students" : "Subjects"}
             value={isTeacher ? totalStudents : totalSubjects}
             sub={isTeacher ? "Across your classes" : "Available subjects"}
-            icon={isTeacher ? Users : BookOpen} gradient="bg-green-500" />
-        )}
-      </div>
+            icon={isTeacher ? Users : BookOpen} gradient="bg-green-500"
+          />
+        </div>
+      )}
 
-      {/* Admin class health */}
+      {/* Admin: class health + ratios */}
       {isAdmin && (
         <div className="grid sm:grid-cols-3 gap-3 mb-6">
           <Card className="sm:col-span-2 border-0 shadow-sm">
@@ -233,7 +280,7 @@ export default function Dashboard() {
               </div>
               <div className="grid grid-cols-2 gap-2 pt-1">
                 {[
-                  { label: "Active",   count: activeClasses,             color: "bg-green-500",            muted: "bg-green-50 dark:bg-green-900/20" },
+                  { label: "Active",   count: activeClasses,              color: "bg-green-500",            muted: "bg-green-50 dark:bg-green-900/20" },
                   { label: "Inactive", count: totalClasses - activeClasses, color: "bg-muted-foreground/40", muted: "bg-muted/50" },
                 ].map(s => (
                   <div key={s.label} className={`flex items-center gap-2 p-2.5 rounded-md ${s.muted}`}>
@@ -253,8 +300,8 @@ export default function Dashboard() {
             <CardContent className="px-5 pb-5 space-y-3">
               {[
                 { label: "Students / Teacher", val: totalTeachers > 0 ? (totalStudents / totalTeachers).toFixed(1) : "—", icon: Users,    color: "text-blue-600" },
-                { label: "Classes / Subject",  val: totalSubjects > 0 ? (totalClasses  / totalSubjects).toFixed(1) : "—",  icon: BookOpen,  color: "text-violet-600" },
-                { label: "Subjects / Dept",    val: totalDepts    > 0 ? (totalSubjects / totalDepts).toFixed(1)    : "—",  icon: Building2, color: "text-rose-600" },
+                { label: "Classes / Subject",  val: totalSubjects > 0 ? (totalClasses / totalSubjects).toFixed(1)   : "—",  icon: BookOpen,  color: "text-violet-600" },
+                { label: "Subjects / Dept",    val: totalDepts > 0    ? (totalSubjects / totalDepts).toFixed(1)     : "—",  icon: Building2, color: "text-rose-600" },
               ].map(r => (
                 <div key={r.label} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -269,7 +316,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Main 2-col */}
+      {/* Main 2-col layout */}
       <div className="grid lg:grid-cols-3 gap-5">
         <Card className="lg:col-span-2 border-0 shadow-sm">
           <CardHeader className="pb-2 pt-5 px-5">
@@ -314,20 +361,23 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent className="px-4 pb-4 space-y-1.5">
               {isAdmin && <>
-                <QA href="/classes/create"     icon={GraduationCap} label="New Class"       desc="Set up a class"       color="bg-blue-500/10 text-blue-600"    />
-                <QA href="/subjects/create"    icon={BookOpen}      label="New Subject"     desc="Add to a department"  color="bg-violet-500/10 text-violet-600" />
-                <QA href="/departments/create" icon={Building2}     label="New Department"  desc="Organise subjects"    color="bg-rose-500/10 text-rose-600"    />
-                <QA href="/users"              icon={Users}         label="Manage Users"    desc={`${totalStudents + totalTeachers} members`} color="bg-amber-500/10 text-amber-600" />
+                {pendingCount > 0 && (
+                  <QA href="/approvals"          icon={ClipboardCheck} label="Review Approvals" desc={`${pendingCount} waiting`}          color="bg-amber-500/10 text-amber-600" badge={pendingCount} />
+                )}
+                <QA href="/classes/create"       icon={GraduationCap}  label="New Class"        desc="Set up a class"                     color="bg-blue-500/10 text-blue-600"    />
+                <QA href="/subjects/create"      icon={BookOpen}       label="New Subject"      desc="Add to a department"                color="bg-violet-500/10 text-violet-600" />
+                <QA href="/departments/create"   icon={Building2}      label="New Department"   desc="Organise subjects"                  color="bg-rose-500/10 text-rose-600"    />
+                <QA href="/users"                icon={Users}          label="Manage Users"     desc={`${totalStudents + totalTeachers} members`} color="bg-amber-500/10 text-amber-600" />
               </>}
               {isTeacher && <>
-                <QA href="/classes/create" icon={GraduationCap} label="Create Class"  desc="Start a new class"       color="bg-blue-500/10 text-blue-600"    />
-                <QA href="/classes"        icon={BookOpen}      label="My Classes"    desc="View all your classes"   color="bg-violet-500/10 text-violet-600" />
-                <QA href="/profile"        icon={Users}         label="My Profile"    desc="Update your info"        color="bg-amber-500/10 text-amber-600"  />
+                <QA href="/classes/create" icon={GraduationCap} label="Create Class"  desc="Start a new class"     color="bg-blue-500/10 text-blue-600"    />
+                <QA href="/classes"        icon={BookOpen}      label="My Classes"    desc="View all your classes" color="bg-violet-500/10 text-violet-600" />
+                <QA href="/profile"        icon={Users}         label="My Profile"    desc="Update your info"      color="bg-amber-500/10 text-amber-600"  />
               </>}
               {isStudent && <>
-                <QA href="/classes"  icon={Key}           label="Join a Class"  desc="Enter invite code"       color="bg-green-500/10 text-green-600"  />
-                <QA href="/classes"  icon={GraduationCap} label="My Classes"    desc="View enrolled classes"   color="bg-blue-500/10 text-blue-600"    />
-                <QA href="/profile"  icon={Users}         label="My Profile"    desc="Update your info"        color="bg-amber-500/10 text-amber-600"  />
+                <QA href="/classes"  icon={Key}           label="Join a Class" desc="Enter invite code"       color="bg-green-500/10 text-green-600" />
+                <QA href="/classes"  icon={GraduationCap} label="My Classes"   desc="View enrolled classes"   color="bg-blue-500/10 text-blue-600"   />
+                <QA href="/profile"  icon={Users}         label="My Profile"   desc="Update your info"        color="bg-amber-500/10 text-amber-600" />
               </>}
             </CardContent>
           </Card>
@@ -362,7 +412,7 @@ export default function Dashboard() {
             {isStudent && "Getting Started"}
           </p>
           <p className="text-xs text-muted-foreground mt-0.5">
-            {isAdmin && <>Set up in order: <a href="/departments" className="underline text-foreground">Departments</a> → <a href="/subjects" className="underline text-foreground">Subjects</a> → <a href="/users" className="underline text-foreground">Add Teachers</a> → <a href="/classes/create" className="underline text-foreground">Create Classes</a>. Share invite codes with students.</>}
+            {isAdmin && <>Set up in order: <a href="/departments" className="underline text-foreground">Departments</a> → <a href="/subjects" className="underline text-foreground">Subjects</a> → <a href="/users" className="underline text-foreground">Add Teachers</a> → <a href="/classes/create" className="underline text-foreground">Create Classes</a>. Teachers and students must be approved through the <a href="/approvals" className="underline text-foreground">Approval Queue</a>.</>}
             {isTeacher && <>Create your first <a href="/classes/create" className="underline text-foreground">class</a>. An invite code is auto-generated — share it with your students.</>}
             {isStudent && <>Go to <a href="/classes" className="underline text-foreground">Classes</a>, click "Join Class", and enter the invite code from your teacher.</>}
           </p>

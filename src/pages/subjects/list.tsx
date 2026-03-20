@@ -17,13 +17,14 @@ import { Search } from "lucide-react";
 export default function SubjectsList() {
   const { isAdmin } = useCurrentUser();
   const [searchQ, setSearchQ] = useState("");
-  const [deptF, setDeptF] = useState("all");
+  const [deptF, setDeptF]     = useState("all");
 
-  const deptsQuery = useList<Department>({ resource: "departments", pagination: { pageSize: 100 } });
-  const depts = deptsQuery.result?.data ?? [];
+  // ✅ Refine v5: correct useList API
+  const { data: deptsResult } = useList<Department>({ resource: "departments", pagination: { pageSize: 100 } });
+  const depts = deptsResult?.data ?? [];
 
-  const searchFilters = searchQ ? [{ field: "name", operator: "contains" as const, value: searchQ }] : [];
-  const deptFilters = deptF !== "all" ? [{ field: "department", operator: "eq" as const, value: deptF }] : [];
+  const searchFilters = searchQ ? [{ field: "name",       operator: "contains" as const, value: searchQ }] : [];
+  const deptFilters   = deptF !== "all" ? [{ field: "department", operator: "eq"       as const, value: deptF  }] : [];
 
   const columns = useMemo<ColumnDef<Subject>[]>(() => [
     { id: "code", accessorKey: "code", size: 100, header: () => <p className="column-title">Code</p>, cell: ({ getValue }) => <Badge variant="secondary" className="font-mono">{getValue<string>()}</Badge> },
@@ -32,7 +33,9 @@ export default function SubjectsList() {
     { id: "description", accessorKey: "description", size: 280, header: () => <p className="column-title">Description</p>, cell: ({ getValue }) => <span className="text-muted-foreground text-sm line-clamp-1">{getValue<string>() || "—"}</span> },
     ...(isAdmin ? [{
       id: "actions", size: 80, header: () => <p className="column-title">Actions</p>,
-      cell: ({ row }: { row: { original: Subject } }) => <DeleteButton resource="subjects" recordItemId={row.original.id} variant="outline" size="sm" />,
+      cell: ({ row }: { row: { original: Subject } }) => (
+        <DeleteButton resource="subjects" recordItemId={row.original.id} variant="outline" size="sm" />
+      ),
     }] : []),
   ] as ColumnDef<Subject>[], [isAdmin]);
 
@@ -53,13 +56,16 @@ export default function SubjectsList() {
       <div className="intro-row">
         <p className="text-muted-foreground">All subjects across departments.</p>
         <div className="actions-row">
-          <div className="search-field"><Search className="search-icon" /><Input type="text" placeholder="Search…" className="pl-10 w-full" value={searchQ} onChange={e => setSearchQ(e.target.value)} /></div>
+          <div className="search-field">
+            <Search className="search-icon" />
+            <Input type="text" placeholder="Search…" className="pl-10 w-full" value={searchQ} onChange={e => setSearchQ(e.target.value)} />
+          </div>
           <div className="flex gap-2">
             <Select value={deptF} onValueChange={setDeptF}>
               <SelectTrigger className="w-[160px]"><SelectValue placeholder="Department" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Departments</SelectItem>
-                {depts.map((d: Department) => <SelectItem key={d.id} value={d.name}>{d.name}</SelectItem>)}
+                {depts.map(d => <SelectItem key={d.id} value={d.name}>{d.name}</SelectItem>)}
               </SelectContent>
             </Select>
             {isAdmin && <CreateButton resource="subjects" />}
