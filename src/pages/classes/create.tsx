@@ -49,16 +49,16 @@ export default function CreateClass() {
   });
 
   // ✅ Refine v5: correct useList API
-  const { data: subjectsResult } = useList<Subject>({ resource: "subjects", pagination: { pageSize: 100 } });
-  const subjects = subjectsResult?.data ?? [];
+  const subjectsQuery = useList<Subject>({ resource: "subjects", pagination: { pageSize: 100 } });
+  const subjects = subjectsQuery.result?.data ?? [];
 
-  const { data: teachersResult } = useList<User>({
+  const teachersQuery = useList<User>({
     resource: "users",
     filters: [{ field: "role", operator: "eq", value: "teacher" }],
     pagination: { pageSize: 100 },
   });
   // Only pass teachers to the selector when admin
-  const teachers = (isAdmin ? teachersResult?.data : []) ?? [];
+  const teachers = (isAdmin ? teachersQuery.result?.data : []) ?? [];
 
   const addSlot    = () => setSchedules(s => [...s, { day: "Monday", startTime: "09:00", endTime: "10:00" }]);
   const removeSlot = (i: number) => setSchedules(s => s.filter((_, x) => x !== i));
@@ -124,39 +124,58 @@ export default function CreateClass() {
               </div>
               <div className={isAdmin ? "grid sm:grid-cols-2 gap-4" : ""}>
                 <Field label="Subject" required error={errors.subjectId?.message}>
-                  <Select value={watch("subjectId") ? String(watch("subjectId")) : ""} onValueChange={v => setValue("subjectId", Number(v))}>
+                  <Select value={watch("subjectId") ? String(watch("subjectId")) : ""} onValueChange={v => setValue("subjectId", Number(v))} disabled={subjectsQuery.query?.isLoading}>
                     <SelectTrigger className={errors.subjectId ? "border-destructive" : ""}>
-                      <SelectValue placeholder={subjects.length === 0 ? "No subjects yet" : "Pick a subject"} />
+                      <SelectValue placeholder={subjectsQuery.query?.isLoading ? "Loading subjects..." : subjects.length === 0 ? "No subjects yet" : "Pick a subject"} />
                     </SelectTrigger>
                     <SelectContent>
-                      {subjects.map(s => (
-                        <SelectItem key={s.id} value={String(s.id)}>
-                          <span className="font-medium">{s.name}</span>
-                          {s.code && <span className="text-muted-foreground text-xs ml-1.5">({s.code})</span>}
-                        </SelectItem>
-                      ))}
-                      {subjects.length === 0 && <div className="px-3 py-2 text-sm text-muted-foreground">Create a subject first</div>}
+                      {subjectsQuery.query?.isLoading ? (
+                        <div className="px-3 py-2 text-sm text-muted-foreground flex items-center gap-2">
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                          Loading subjects...
+                        </div>
+                      ) : (
+                        <>
+                          {subjects.map(s => (
+                            <SelectItem key={s.id} value={String(s.id)}>
+                              <span className="font-medium">{s.name}</span>
+                              {s.code && <span className="text-muted-foreground text-xs ml-1.5">({s.code})</span>}
+                            </SelectItem>
+                          ))}
+                          {subjects.length === 0 && <div className="px-3 py-2 text-sm text-muted-foreground">Create a subject first</div>}
+                        </>
+                      )}
                     </SelectContent>
                   </Select>
                 </Field>
 
                 {isAdmin && (
                   <Field label="Teacher" error={errors.teacherId?.message}>
-                    <Select value={watch("teacherId") ?? ""} onValueChange={v => setValue("teacherId", v)}>
+                    <Select value={watch("teacherId") ?? ""} onValueChange={v => setValue("teacherId", v)} disabled={teachersQuery.query?.isLoading}>
                       <SelectTrigger>
-                        <SelectValue placeholder={teachers.length === 0 ? "No teachers yet" : "Pick a teacher"} />
+                        <SelectValue placeholder={teachersQuery.query?.isLoading ? "Loading teachers..." : teachers.length === 0 ? "No teachers yet" : "Pick a teacher"} />
                       </SelectTrigger>
                       <SelectContent>
-                        {teachers.map(t => (
-                          <SelectItem key={t.id} value={String(t.id)}>
-                            <div className="flex items-center gap-2">
-                              {t.image
-                                ? <img src={t.image} className="w-5 h-5 rounded-full object-cover" alt="" />
-                                : <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-[9px] font-bold text-primary">{t.name.charAt(0)}</div>}
-                              {t.name}
-                            </div>
-                          </SelectItem>
-                        ))}
+                        {teachersQuery.query?.isLoading ? (
+                          <div className="px-3 py-2 text-sm text-muted-foreground flex items-center gap-2">
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                            Loading teachers...
+                          </div>
+                        ) : (
+                          <>
+                            {teachers.map(t => (
+                              <SelectItem key={t.id} value={String(t.id)}>
+                                <div className="flex items-center gap-2">
+                                  {t.image
+                                    ? <img src={t.image} className="w-5 h-5 rounded-full object-cover" alt="" />
+                                    : <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-[9px] font-bold text-primary">{t.name.charAt(0)}</div>}
+                                  {t.name}
+                                </div>
+                              </SelectItem>
+                            ))}
+                            {teachers.length === 0 && <div className="px-3 py-2 text-sm text-muted-foreground">Create a teacher account first</div>}
+                          </>
+                        )}
                       </SelectContent>
                     </Select>
                   </Field>
