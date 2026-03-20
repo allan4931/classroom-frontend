@@ -1,0 +1,122 @@
+# CodeRabbit Configuration for NetClass Frontend
+language: typescript
+framework: react
+
+# Enable comprehensive code analysis
+reviews:
+  request_changes: true
+  high_priority_tags:
+    - security
+    - performance
+    - bug
+    - accessibility
+  low_priority_tags:
+    - style
+    - documentation
+
+# Code quality checks
+quality:
+  # Enable all checks
+  enable_all: true
+  
+  # Specific focus areas
+  focus_areas:
+    - security_vulnerabilities
+    - performance_issues
+    - code_complexity
+    - error_handling
+    - type_safety
+    - accessibility_issues
+    - react_best_practices
+  
+  # TypeScript specific
+  typescript:
+    strict_mode: true
+    no_implicit_any: true
+    prefer_strict_equals: true
+  
+  # React specific
+  react:
+    check_hooks_usage: true
+    check_prop_types: true
+    check_key_props: true
+    prefer_functional_components: true
+
+# Security scanning
+security:
+  scan_dependencies: true
+  scan_secrets: true
+  security_rules:
+    - xss
+    - csrf
+    - authentication
+    - authorization
+    - sensitive_data_exposure
+
+# Performance analysis
+performance:
+  check_bundle_size: true
+  check_render_performance: true
+  check_memory_leaks: true
+  check_unused_dependencies: true
+
+# Accessibility checks
+accessibility:
+  enable_a11y_checks: true
+  check_aria_attributes: true
+  check_color_contrast: true
+  check_keyboard_navigation: true
+
+# Documentation requirements
+documentation:
+  require_component_docs: true
+  require_readme_updates: true
+  
+# Testing requirements
+testing:
+  require_unit_tests: false # Optional for now
+  check_coverage: false
+
+# Custom rules for NetClass Frontend
+custom_rules:
+  - name: "Environment Variable Security"
+    description: "Check for hardcoded secrets or missing environment variables"
+    pattern: "process\\.env\\."
+    message: "Ensure environment variables are properly documented and not hardcoded"
+  
+  - name: "API Key Security"
+    description: "Ensure API keys are not exposed in frontend code"
+    pattern: "(api_key|apikey|API_KEY)"
+    message: "API keys should not be exposed in frontend code"
+  
+  - name: "Console Logs"
+    description: "Remove console.log statements in production code"
+    pattern: "console\\.log"
+    message: "Remove console.log statements before committing"
+  
+  - name: "React Key Props"
+    description: "Ensure list items have proper key props"
+    pattern: "\\.map\\("
+    message: "Add unique key props to list items"
+  
+  - name: "Error Boundaries"
+    description: "Ensure error boundaries are used for error handling"
+    pattern: "try\\s*\\{"
+    message: "Consider using error boundaries for better error handling"
+
+# Ignore certain files/directories
+ignore:
+  - "node_modules/**"
+  - "dist/**"
+  - "build/**"
+  - "*.log"
+  - ".env*"
+  - "public/**"
+
+# Auto-fix settings
+auto_fix:
+  enabled: true
+  fix_typescript: true
+  fix_imports: true
+  fix_formatting: true
+  fix_react_issues: true
