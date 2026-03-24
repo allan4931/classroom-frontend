@@ -78,6 +78,8 @@
     "@typescript-eslint/eslint-plugin": "^5.57.1",
     "@typescript-eslint/parser": "^5.57.1",
     "@vitejs/plugin-react": "^4.4.1",
+    "electron": "^41.0.3",
+    "electron-builder": "^26.8.1",
     "eslint": "^9.25.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
@@ -91,7 +93,11 @@
     "dev": "refine dev",
     "build": "refine build",
     "start": "refine start",
-    "refine": "refine"
+    "refine": "refine",
+    "electron:dev": "npm run build && electron .",
+    "electron:build": "npm run build && electron-builder",
+    "electron:build:win": "npm run build && electron-builder --win",
+    "electron:build:mac": "npm run build && electron-builder --mac"
   },
   "browserslist": {
     "production": [
@@ -107,5 +113,40 @@
   },
   "refine": {
     "projectId": "jtNqZy-1VTAjv-OXwtBn"
-  }
+  },
+  "main": "electron/main.js",
+  "build": {
+    "appId": "com.netclass.app",
+    "productName": "NetClass",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "public/icon.ico",
+      "artifactName": "NetClass-Setup-${version}.exe"
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "icon": "public/icon.icns",
+      "category": "public.app-category.education",
+      "artifactName": "NetClass-${version}.dmg"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  },
+  "description": "NetClass Classroom Management System",
+  "author": "NetClass Team"
 }
