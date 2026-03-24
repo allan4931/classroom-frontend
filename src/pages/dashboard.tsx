@@ -137,16 +137,6 @@ export default function Dashboard() {
   const deptsQuery = useList<Dept>({ resource: "departments", pagination: { pageSize: 1 } });
   const recentUsersQuery = useList<User>({ resource: "users", pagination: { pageSize: 5 } });
 
-  // Debug logging
-  console.log('Dashboard Debug:', {
-    classesQuery,
-    subjectsQuery,
-    teachersQuery,
-    studentsQuery,
-    deptsQuery,
-    recentUsersQuery
-  });
-
   const classes       = classesQuery?.result?.data ?? [];
   const totalClasses  = classesQuery?.result?.total ?? 0;
   const totalSubjects = subjectsQuery?.result?.total ?? 0;
