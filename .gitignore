@@ -1,56 +1,6 @@
-# Logs
-
-logs
-_.log
-npm-debug.log_
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
-
-.vscode/_
-!.vscode/extensions.json
-.idea
+node_modules/
+dist/
 .DS_Store
-_.suo
-_.ntvs_
-_.njsproj
-_.sln
-*.sw?
-
-# Environment files
-.env
-.env.local
-.env.production
-.env.sandbox
-
-# Test files with credentials
-test-api.js
-test-*.js
-*-test.js
-*-test.ts
-
-# Development files
-check-users.ts
-reset-admin-password.ts
-revert-admin-password.ts
-setup-admin.ts
-update-admin-password.ts
-
-# Deployment files
-deploy.sh
-server-setup.sh
-ssl-setup.sh
-monitor.sh
-
-# Sensitive configuration
-ecosystem.config.js
-nginx-*.conf
-env-*.example
+*.log
+electron/
+release/
